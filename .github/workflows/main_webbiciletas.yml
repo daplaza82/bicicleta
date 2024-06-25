@@ -1,7 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
-
 name: Build and deploy Python app to Azure Web App - webbiciletas
 
 on:
@@ -31,7 +27,7 @@ jobs:
         run: pip install -r requirements.txt
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
-
+      
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
 
@@ -49,8 +45,6 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write #This is required for requesting the JWT
 
     steps:
       - name: Download artifact from build job
@@ -60,7 +54,6 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-
       
       - name: Login to Azure
         uses: azure/login@v1
@@ -70,9 +63,22 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_952158A2C2624CB68F9F00746B0D1FD7 }}
 
       - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
         with:
           app-name: 'webbiciletas'
           slot-name: 'Production'
+
+      - name: Configure and start web app
+        run: |
+          echo "Configurando la aplicación web..."
+          # Asegúrate de que Gunicorn esté instalado
+          pip install gunicorn
           
+          # Crear un archivo de inicio para Azure
+          echo "gunicorn --bind=0.0.0.0 --timeout 600 app:app" > startup.txt
+          
+          # Configurar las variables de entorno necesarias (si las hay)
+          # az webapp config appsettings set --name webbiciletas --resource-group <tu-grupo-de-recursos> --settings FLASK_APP=app.py
+          
+          echo "Aplicación web configurada y lista para iniciar."
