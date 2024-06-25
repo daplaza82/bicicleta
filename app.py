@@ -3,6 +3,8 @@ import urllib.request
 import json
 import os
 import ssl
+import werkzeug
+werkzeug.cached_property = werkzeug.utils.cached_property
 
 app = Flask(__name__)
 
